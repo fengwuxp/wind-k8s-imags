@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ${APP_NAME}-svc
+  namespace: ${K8S_NAMESPACE}
+  labels:
+    app: ${APP_NAME}-svc
+spec:
+  type: ClusterIP
+  sessionAffinity: ClientIP
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  selector:
+    app: ${APP_NAME}

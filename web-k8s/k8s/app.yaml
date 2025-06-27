@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ${APP_NAME}
+  namespace: ${K8S_NAMESPACE}
+  labels:
+    app: ${APP_NAME}
+    env: ${ENV}
+spec:
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  replicas: ${REPLICAS}
+  selector:
+    matchLabels:
+      app: ${APP_NAME}
+      env: ${ENV}
+  template:
+    metadata:
+      labels:
+        app: ${APP_NAME}
+        env: ${ENV}
+        logenable: 'true'
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 60
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app: ${APP_NAME}
+                topologyKey: kubernetes.io/hostname
+      containers:
+        - name: ${APP_NAME}
+          image: ${IMAGE}
+          imagePullPolicy: IfNotPresent
+          lifecycle:
+            preStop:
+              exec:
+                command: [ "/usr/sbin/nginx","-s","quit" ]
+            postStart:
+              exec:
+                command: [ "/bin/bash","-c","/entrypoint.sh -m start" ]
+          env:
+            - name: APP_NAME
+              value: ${APP_NAME}
+            - name: TZ
+              value: ${TIME_ZONE}
+            - name: MY_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: ENV
+              value: ${ENV}
+          ports:
+            - containerPort: 80
+              name: http
+          readinessProbe:
+            tcpSocket:
+              port: 80
+            initialDelaySeconds: 5
+            timeoutSeconds: 1
+            periodSeconds: 1
+            failureThreshold: 2
+          livenessProbe:
+            httpGet:
+              path: /healthcheck
+              port: 80
+            initialDelaySeconds: 5
+            timeoutSeconds: 5
+            periodSeconds: 30
+          volumeMounts:
+            - name: ${APP_NAME}-config-volume
+              mountPath: /etc/nginx/conf.d
+            - name: oss-data
+              mountPath: /data/oss
+      volumes:
+        - name: ${APP_NAME}-config-volume
+          persistentVolumeClaim:
+            claimName: pvc-nas-${ENV}
+        - name: oss-data
+          persistentVolumeClaim:
+            claimName: pvc-oss-${ENV}
