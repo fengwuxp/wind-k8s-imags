@@ -16,8 +16,16 @@ FROM eclipse-temurin:21-jdk
 
 ENV TZ="Asia/Shanghai"
 
+# 拷贝启动脚本和 profile 配置
+COPY ./startup.sh ./prestop.sh /home/admin/run/
+COPY ./jdk.sh /etc/profile.d/
+
+# 从 downloader 拷贝 arthas 解压目录
+COPY --from=downloader /opt/arthas /opt/arthas
+
 # 安装基础依赖（无 curl）
 RUN apt-get update && \
+    apt-get remove -y wget curl && \
     apt-get install -y --no-install-recommends \
         fontconfig locales tzdata && \
     rm -rf /var/lib/apt/lists/* && \
@@ -31,13 +39,6 @@ RUN useradd -u 1001 -m -s /bin/bash admin
 RUN mkdir -p /home/admin/run /home/admin/nas /home/admin/logs && \
     chown -R admin:admin /home/admin && \
     chmod 755 /home/admin/nas
-
-# 拷贝启动脚本和 profile 配置
-COPY ./startup.sh ./prestop.sh /home/admin/run/
-COPY ./jdk.sh /etc/profile.d/
-
-# 从 downloader 拷贝 arthas 解压目录
-COPY --from=downloader /opt/arthas /opt/arthas
 
 # 权限设置
 RUN chmod +x /home/admin/run/startup.sh /home/admin/run/prestop.sh && \

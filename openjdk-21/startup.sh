@@ -23,7 +23,7 @@ else
   rm -f "$LOG_DIR/.test"
 fi
 
-# 启动应用
+# 启动应用 JAVA_OPTS、$SPRING_CLOUD_OPTS、$SPRING_APPLICATION_OPTS 从环境变量中来
 exec "$JAVACMD" \
   -Dpod.name="${POD_NAME}" \
   ${JAVA_OPTS} \
@@ -34,5 +34,5 @@ exec "$JAVACMD" \
   ${SPRING_APPLICATION_OPTS} \
   -Dfile.encoding=UTF8 \
   -Dsun.jnu.encoding=UTF8 \
-  -Duser.timezone="${TZ:-Asia/Shanghai}" \
+  -Duser.timezone=$TZ \
   -jar /home/admin/run/bootstrap.jar "$@"

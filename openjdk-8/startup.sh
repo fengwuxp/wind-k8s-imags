@@ -1,29 +1,35 @@
 #!/bin/bash
+set -e
 
-read_property(){
-    grep "^$2=" "$1" | cut -d'=' -f2
-}
-
+# 自动检测 Java 命令
 if [ -z "$JAVA_HOME" ] ; then
-  JAVACMD=`which java`
+  JAVACMD=$(which java)
 else
   JAVACMD="$JAVA_HOME/bin/java"
 fi
 
-if [ ! -x "$JAVACMD" ] ; then
+if [ ! -x "$JAVACMD" ]; then
   echo "The JAVA_HOME environment variable is not defined correctly" >&2
-  echo "This environment variable is needed to run this program" >&2
-  echo "NB: JAVA_HOME should point to a JDK not a JRE" >&2
   exit 1
 fi
 
-# JAVA_OPTS、$SPRING_CLOUD_OPTS、$SPRING_APPLICATION_OPTS 从环境变量中来
+# 定义日志和 dump 目录，优先使用 nas，如果无权限则 fallback 到 /tmp
+LOG_DIR="/home/admin/nas"
+
+if ! touch "$LOG_DIR/.test" 2>/dev/null; then
+  echo "WARN: $LOG_DIR not writable, fallback to /tmp"
+  LOG_DIR="/tmp"
+else
+  rm -f "$LOG_DIR/.test"
+fi
+
+# 启动应用 JAVA_OPTS、$SPRING_CLOUD_OPTS、$SPRING_APPLICATION_OPTS 从环境变量中来
 exec "$JAVACMD" \
-  -Dpod.name=$POD_NAME $JAVA_OPTS -XX:+PrintGCDetails -XX:+PrintGCDateStamps -Xloggc:/home/admin/nas/gc-$POD_NAME.log \
+  -Dpod.name=$POD_NAME $JAVA_OPTS -XX:+PrintGCDetails -XX:+PrintGCDateStamps -Xloggc:${LOG_DIR}/gc-$POD_NAME.log \
   -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/home/admin/nas/dump-$POD_NAME.hprof \
   $SPRING_CLOUD_OPTS \
   $SPRING_APPLICATION_OPTS \
   -Dfile.encoding=UTF8 \
   -Dsun.jnu.encoding=UTF8 \
   -Duser.timezone=$TZ \
-  -jar bootstrap.jar $@
+  -jar /home/admin/run/bootstrap.jar "$@"
