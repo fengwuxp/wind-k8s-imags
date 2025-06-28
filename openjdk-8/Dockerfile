@@ -2,7 +2,7 @@
 FROM eclipse-temurin:8-jdk AS downloader
 
 ARG ARTHAS_VERSION=4.0.5
-ENV ARTHAS_URL=https://github.com/alibaba/arthas/releases/download/arthas-${ARTHAS_VERSION}/arthas-bin.zip
+ENV ARTHAS_URL=https://github.com/alibaba/arthas/releases/download/arthas-all-${ARTHAS_VERSION}/arthas-bin.zip
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends curl unzip && \
@@ -19,7 +19,7 @@ ENV TZ="Asia/Shanghai"
 # 安装基础依赖（无 curl）
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-        locales tzdata fontconfig && \
+        fontconfig locales tzdata && \
     rm -rf /var/lib/apt/lists/* && \
     ln -sf /usr/share/zoneinfo/${TZ} /etc/localtime && \
     echo "${TZ}" > /etc/timezone
