@@ -16,13 +16,6 @@ fi
 # 定义日志和 dump 目录，优先使用 nas，如果无权限则 fallback 到 /tmp
 LOG_DIR="/home/admin/nas"
 
-if ! touch "$LOG_DIR/.test" 2>/dev/null; then
-  echo "WARN: $LOG_DIR not writable, fallback to /tmp"
-  LOG_DIR="/tmp"
-else
-  rm -f "$LOG_DIR/.test"
-fi
-
 # 启动应用 JAVA_OPTS、$SPRING_CLOUD_OPTS、$SPRING_APPLICATION_OPTS 从环境变量中来
 exec "$JAVACMD" \
   -Dpod.name=$POD_NAME $JAVA_OPTS -XX:+PrintGCDetails -XX:+PrintGCDateStamps -Xloggc:${LOG_DIR}/gc-$POD_NAME.log \
