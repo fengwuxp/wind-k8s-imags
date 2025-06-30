@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/wind-k8s-imags.iml" filepath="$PROJECT_DIR$/wind-k8s-imags.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/wind-k8s-imags.iml" filepath="$PROJECT_DIR$/.idea/wind-k8s-imags.iml" />
     </modules>
   </component>
 </project>
