@@ -19,27 +19,22 @@ FROM eclipse-temurin:21-jdk
 
 ENV TZ="Asia/Shanghai"
 
-# 安装依赖（无 curl/wget/unzip）
+# 安装必要依赖、设置时区、创建用户与目录
 RUN apt-get update && \
-    apt-get remove -y wget curl unzip && \
-    apt-get install -y --no-install-recommends \
-        fontconfig locales tzdata unzip && \
-    rm -rf /var/lib/apt/lists/* && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends fontconfig locales tzdata && \
     ln -sf /usr/share/zoneinfo/${TZ} /etc/localtime && \
-    echo "${TZ}" > /etc/timezone
+    echo "${TZ}" > /etc/timezone && \
+    useradd -u 1001 -m -s /bin/bash admin && \
+    mkdir -p /home/admin/run /home/admin/nas /home/admin/logs && \
+    apt-get remove -y curl wget unzip && \
+    apt-get autoremove -y && \
+    rm -rf /var/lib/apt/lists/*
 
-# 添加 admin 用户（UID 1001）
-RUN useradd -u 1001 -m -s /bin/bash admin
-
-# 确保目录存在并提前授权
-RUN mkdir -p /home/admin/run /home/admin/nas /home/admin/logs
-
-# 将文件拷贝给 admin
+# 拷贝文件并设定权限
 COPY --chown=admin:admin ./startup.sh ./prestop.sh /home/admin/run/
 COPY --chown=admin:admin ./jdk.sh /etc/profile.d/
 COPY --from=downloader --chown=admin:admin /opt/arthas /opt/arthas
 
-# 确保所有目录归属 admin
 RUN chown -R admin:admin /home/admin /opt && \
     chmod +x /home/admin/run/startup.sh \
              /home/admin/run/prestop.sh \
