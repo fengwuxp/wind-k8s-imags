@@ -35,8 +35,8 @@ RUN useradd -u 1001 -m -s /bin/bash admin
 RUN mkdir -p /home/admin/run /home/admin/nas /home/admin/logs
 
 # 将文件拷贝给 admin
-COPY --chown=admin:admin ./startup.sh ./prestop.sh /home/admin/run/
-COPY --chown=admin:admin ./jdk.sh /etc/profile.d/
+COPY --chown=admin:admin ../startup.sh ./prestop.sh /home/admin/run/
+COPY --chown=admin:admin ../jdk.sh /etc/profile.d/
 COPY --from=downloader --chown=admin:admin /opt/arthas /opt/arthas
 
 # 确保所有目录归属 admin
